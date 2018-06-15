@@ -6,7 +6,7 @@ from collections import defaultdict, Counter
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('input_file',
-    help='''xxx''')
+    help='''contains one hex string''')
 args = arg_parser.parse_args()
 
 def main():

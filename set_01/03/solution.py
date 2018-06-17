@@ -12,7 +12,7 @@ args = arg_parser.parse_args()
 def main():
     cipher_text_bytes = get_input_bytes(args.input_file)
 
-    mses = defaultdict(lambda: 2**32-1) # mean squared error
+    mses = defaultdict(lambda: 2**32-1) # mean squared errors
     for key in map(ord, string.printable):
         s = bytes(b^key for b in cipher_text_bytes).decode('us-ascii').lower()
 

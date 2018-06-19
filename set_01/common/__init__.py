@@ -1,1 +1,1 @@
-from .utils import get_eng_freq
+from .utils import eng_score, xor_decrypt

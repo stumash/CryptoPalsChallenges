@@ -1,19 +1,28 @@
-import os.path as p
+import os.path as osp
 from collections import defaultdict
+from functools import lru_cache
 
-def get_eng_freq():
-    big_book_name = 'pride_and_prejudice.txt'
-    big_book_path = p.join(p.dirname(__file__), big_book_name)
-
+@lru_cache(maxsize=1)
+def _get_eng_freq():
     eng_freq = defaultdict(int)
-    with open(big_book_path, 'r') as f:
-        # count all occurence of each character
+
+    txtname = 'pride_and_prejudice.txt'
+    txtpath = osp.join(osp.dirname(__file__), txtname)
+    with open(txtpath, 'r') as f:
         length = 0
         for line in f:
-            for c in line.strip():
-                eng_freq[c] += 1
+            line = line.strip()
+            for c in line:
                 length += 1
-        # and divide by length of text
+                eng_freq[c] += 1
         for c in eng_freq:
             eng_freq[c] /= length
+
     return eng_freq
+
+def eng_score(s: str):
+    eng_freq = _get_eng_freq()
+    return sum(eng_freq[c] for c in s.lower())
+
+def xor_decrypt(bts: bytes, k: int) -> str:
+    return ''.join(chr(b^k) for b in bts)

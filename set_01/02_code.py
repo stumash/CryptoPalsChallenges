@@ -8,20 +8,15 @@ arg_parser.add_argument('input_file',
 args = arg_parser.parse_args()
 
 def main():
-    b1,b2 = get_input_bytes(args.input_file) # len(b1) == len(b2)
+    with open(args.input_file, 'r') as f:
+        [bts1, bts2] = [bytes.fromhex(line.strip()) for line in f]
 
-    result = bytes(b1[i]^b2[i] for i in range(len(b1)))
+    res = ''.join(chr(b1^b2) for b1,b2 in zip(bts1,bts2))
 
-    print('utf-8 decoded hex:\n', result.decode('utf-8'), sep='')
-    print()
-    print('raw hex:\n', result.hex(), sep='')
+    s1 = ''.join(chr(b) for b in bts1)
+    s2 = ''.join(chr(b) for b in bts2)
 
-def get_input_bytes(filename):
-    with open(filename, 'r') as f:
-        lines = (line.strip() for line in f)
-        line1 = next(lines)
-        line2 = next(lines)
-    return tuple(map(bytes.fromhex,[line1,line2]))
+    print("in1: '{}'\nin2: '{}'\nres: '{}'".format(s1,s2,res))
 
 if __name__ == "__main__":
     main()

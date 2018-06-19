@@ -1,6 +1,7 @@
 import os.path as osp
 from collections import defaultdict
 from functools import lru_cache
+from itertools import cycle
 
 @lru_cache(maxsize=1)
 def _get_eng_freq():
@@ -26,3 +27,6 @@ def eng_score(s: str):
 
 def xor_decrypt(bts: bytes, k: int) -> str:
     return ''.join(chr(b^k) for b in bts)
+
+def repeat_xor(bts: bytes, key: bytes) -> str:
+    return bytes(b^k for b,k in zip(bts, cycle(key))).hex()

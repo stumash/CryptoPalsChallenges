@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from common import eng_score, xor_decrypt
+from common_set01 import eng_score, xor_decrypt
 
 import argparse
 arg_parser = argparse.ArgumentParser()

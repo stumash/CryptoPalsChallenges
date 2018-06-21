@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 from base64 import b64decode
-from common_set01 import hamming
+from common_set01 import hamming, eng_score
+from functools import partial
 
 import argparse
 arg_parser = argparse.ArgumentParser()
@@ -21,7 +22,16 @@ def main():
 
     probable_keysizes = sorted(range(2,40), key=normalized_hamming)[:3]
 
-    print(probable_keysizes)
+    # btss_pks = [[bytes(bts[i] for i in range(start,len(bts),pks)) for start in range(pks)]
+                # for pks in probable_keysizes]
+
+    # def key_score(btss: [bytes], pks: int, key: int):
+        # return sum(eng_score(chr(b^key) for b in bts) for bts in btss) / pks
+
+    # probable_keys = [max(range(256), key=partial(key_score, btss, pks))
+                     # for btss,pks in zip(btss_pks,probable_keysizes)]
+
+    # best_key = max(zip(probable_keys,10), key=)
 
 if __name__ == "__main__":
     main()

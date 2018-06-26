@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from common_set01 import repeat_xor
+from common_set01 import repeat_xor, chrify
 
 import argparse
 arg_parser = argparse.ArgumentParser()
@@ -12,7 +12,7 @@ def main():
     with open(args.input_file, 'r') as f:
         bts = bytes(f.read().strip(), 'us-ascii')
 
-    print(repeat_xor(bts, b'ICE'))
+    print(repeat_xor(bts, b'ICE').hex())
 
 if __name__ == "__main__":
     main()

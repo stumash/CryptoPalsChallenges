@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from common_set01 import eng_score, xor_decrypt
+from common_set01 import eng_score, xor_decrypt, chrify
 
 import argparse
 arg_parser = argparse.ArgumentParser()
@@ -19,7 +19,7 @@ def main():
 
     best = max(decs, key=eng_score)
 
-    print("'{}'".format(best))
+    print("'{}'".format(chrify(best)))
 
 if __name__ == "__main__":
     main()

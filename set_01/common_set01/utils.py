@@ -2,10 +2,15 @@ import os.path as osp
 from collections import defaultdict
 from functools import lru_cache
 from itertools import cycle
+from typing import Union
 
-def eng_score(s: str):
+def eng_score(s: Union[str,bytes]):
+    if type(s) == bytes: s = chrify(s)
     eng_freq = _get_eng_freq()
     return sum(eng_freq[c] for c in s.lower())
+
+def chrify(it):
+    return ''.join(chr(i) for i in it)
 
 @lru_cache(maxsize=1)
 def _get_eng_freq() -> {chr: int}:
@@ -25,17 +30,12 @@ def _get_eng_freq() -> {chr: int}:
 
     return eng_freq
 
-def xor_decrypt(bts: bytes, k: int) -> str:
-    return ''.join(chr(b^k) for b in bts)
+def xor_decrypt(bts: bytes, k: int) -> bytes:
+    return bytes(b^k for b in bts)
 
-def repeat_xor(bts: bytes, key: bytes) -> str:
-    return bytes(b^k for b,k in zip(bts, cycle(key))).hex()
+def repeat_xor(bts: bytes, key: bytes) -> bytes:
+    return bytes(b^k for b,k in zip(bts, cycle(key)))
 
-def hamming(s1: str, s2: str) -> int:
-    assert(len(s1) == len(s2))
-    return sum(_count_ones(ord(c1)^ord(c2)) for c1,c2 in zip(s1,s2))
-
-@lru_cache(maxsize=256)
-def _count_ones(n: int):
-    if n == 0: return 0
-    return n%2 + _count_ones(n//2)
+def hamming(bts1: bytes, bts2: bytes) -> int:
+    assert(len(bts1) == len(bts2))
+    return sum(bin(b1^b2).count('1') for b1,b2 in zip(bts1,bts2))

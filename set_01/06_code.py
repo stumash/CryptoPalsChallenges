@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 from base64 import b64decode
-from common_set01 import hamming, eng_score
-from functools import partial
+from common_set01 import hamming, eng_score, xor_decrypt, repeat_xor
 
 import argparse
 arg_parser = argparse.ArgumentParser()
@@ -13,25 +12,21 @@ args = arg_parser.parse_args()
 
 def main():
     with open(args.input_file, 'r') as f:
-        bts = b64decode(''.join(line.strip() for line in f))
+        bts = b64decode(''.join(line for line in f))
 
-    def normalized_hamming(keysize: int):
-        s = ''.join(chr(b) for b in bts[:keysize*2])
-        s1, s2 = s[:keysize], s[keysize:keysize*2]
-        return hamming(s1, s2) / keysize
+    keysize = min(range(2,40), key=lambda k: normalized_hamming(bts, k))
 
-    probable_keysizes = sorted(range(2,40), key=normalized_hamming)[:3]
+    vigi    = [bts[start::keysize] for start in range(keysize)]
 
-    # btss_pks = [[bytes(bts[i] for i in range(start,len(bts),pks)) for start in range(pks)]
-                # for pks in probable_keysizes]
+    key     = [max(range(256), key=lambda k: eng_score(xor_decrypt(bts, k))) for bts in vigi]
 
-    # def key_score(btss: [bytes], pks: int, key: int):
-        # return sum(eng_score(chr(b^key) for b in bts) for bts in btss) / pks
+    dec     = repeat_xor(bts, key)
 
-    # probable_keys = [max(range(256), key=partial(key_score, btss, pks))
-                     # for btss,pks in zip(btss_pks,probable_keysizes)]
+    print('key: {}, msg: {}'.format(''.join(map(chr, key)), dec))
 
-    # best_key = max(zip(probable_keys,10), key=)
+def normalized_hamming(bts: bytes, keysize: int):
+    s = ''.join(chr(b) for b in bts[:keysize*2])
+    return hamming(s[:keysize], s[keysize:keysize*2]) / keysize
 
 if __name__ == "__main__":
     main()

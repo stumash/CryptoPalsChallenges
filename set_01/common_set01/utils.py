@@ -32,10 +32,6 @@ def repeat_xor(bts: bytes, key: bytes) -> str:
     return bytes(b^k for b,k in zip(bts, cycle(key))).hex()
 
 def hamming(s1: str, s2: str) -> int:
-    """
-    For two strings s1 and s2, count the number of
-    bits that are different
-    """
     assert(len(s1) == len(s2))
     return sum(_count_ones(ord(c1)^ord(c2)) for c1,c2 in zip(s1,s2))
 

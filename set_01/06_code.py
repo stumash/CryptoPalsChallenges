@@ -21,15 +21,15 @@ def main():
 
     key = [max(range(256), key=lambda k: eng_score(xor_decrypt(bts, k))) for bts in tk]
 
-    dec = repeat_xor(bts, key)
+    msg = repeat_xor(bts, key)
 
-    print('keysize:\n{}'.format(keysize))
-    print('key:\n{}'.format(chrify(key)))
-    print('dec:\n{}'.format(chrify(dec)))
+    print('keysize: {}'.format(keysize))
+    print('key: "{}"'.format(chrify(key)))
+    print('message:\n{}'.format(chrify(msg)))
 
 def normalized_hamming(bts: bytes, keysize: int):
-    chunks = [bts[keysize*i:keysize*(i+1)] for i in range((len(bts)//keysize)-1)]
-    return mean(hamming(chunks[i],chunks[i+1])/keysize for i in range(len(chunks)-1))
+    chunks = [bts[i:i+keysize] for i in range(0,len(bts)-keysize,keysize)]
+    return mean(hamming(ch1,ch2) / keysize for ch1,ch2 in zip(chunks,chunks[1:]))
 
 if __name__ == "__main__":
     main()

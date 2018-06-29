@@ -11,5 +11,12 @@ def main():
     with open(args.input_file, 'r') as f:
         btss = [bytes.fromhex(line.strip()) for line in f]
 
+    best_i,best_bts = max(enumerate(btss), key=lambda t: ecb_detect(t[1]))
+
+    print(best_i,best_bts)
+
+def ecb_detect(bts):
+    return True
+
 if __name__ == "__main__":
     main()

@@ -4,15 +4,8 @@ from base64 import b64decode
 from common_set01 import hamming, eng_score, xor_decrypt, repeat_xor, chrify
 from statistics import mean
 
-import argparse
-arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument('input_file',
-        help='''file containing base64-encoded ciphertext produced by
-        repeating-xor''')
-args = arg_parser.parse_args()
-
 def main():
-    with open(args.input_file, 'r') as f:
+    with open('data/05_input.txt', 'r') as f:
         bts = b64decode(''.join(line for line in f))
 
     keysize = min(range(2,40), key=lambda k: normalized_hamming(bts, k))

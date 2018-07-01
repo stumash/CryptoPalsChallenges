@@ -2,20 +2,13 @@
 
 from common_set01 import eng_score, xor_decrypt, chrify
 
-import argparse
-arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument('input_file',
-        help='''file containing 60-character lines of text, one of which is
-        english text encrypted with one-character XOR''')
-args = arg_parser.parse_args()
-
 def main():
-    with open(args.input_file, 'r') as f:
-        bl = [bytes.fromhex(line.strip()) for line in f]
+    with open('data/04_input.txt', 'r') as f:
+        btss = [bytes.fromhex(line.strip()) for line in f]
 
-    keys = [max(range(256), key=lambda k: eng_score(xor_decrypt(bts, k))) for bts in bl]
+    keys = [max(range(256), key=lambda k: eng_score(xor_decrypt(bts, k))) for bts in btss]
 
-    decs = [xor_decrypt(bts, k) for bts,k in zip(bl, keys)]
+    decs = [xor_decrypt(bts, k) for bts,k in zip(btss, keys)]
 
     best = max(decs, key=eng_score)
 

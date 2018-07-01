@@ -2,17 +2,17 @@
 
 from common_set01 import repeat_xor, chrify
 
-import argparse
-arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument('input_file',
-        help='''file containing two-line msg to enrypt''')
-args = arg_parser.parse_args()
-
 def main():
-    with open(args.input_file, 'r') as f:
+    with open('data/05_input.txt', 'r') as f:
         bts = bytes(f.read().strip(), 'us-ascii')
 
-    print(repeat_xor(bts, b'ICE').hex())
+    result = repeat_xor(bts, b'ICE')
+
+    with open('data/05_expected_output.txt', 'r') as f:
+        expected_output = bytes.fromhex(next(line.strip() for line in f))
+    assert(result == expected_output)
+
+    print(result.hex())
 
 if __name__ == "__main__":
     main()

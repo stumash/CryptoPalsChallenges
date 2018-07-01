@@ -2,17 +2,16 @@
 
 from base64 import b64encode
 
-import argparse
-arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument('input_file',
-    help='''contains one line, a string of hex data''')
-args = arg_parser.parse_args()
-
 def main():
-    with open(args.input_file, 'r') as f:
+    with open('data/01_input.txt', 'r') as f:
         bts = bytes.fromhex(next(line.strip() for line in f))
 
-    print(b64encode(bts).decode('utf-8'))
+    result = b64encode(bts).decode('utf-8')
+    print(result)
+
+    with open('data/01_expected_output.txt', 'r') as f:
+        expected_output = next(line.strip() for line in f)
+    assert(expected_output == result)
 
 if __name__ == "__main__":
     main()

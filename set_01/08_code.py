@@ -2,15 +2,8 @@
 
 from collections import Counter
 
-import argparse
-arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument('input_file',
-        help='''file containing lines of hex-encoded ciphertext, one
-        of which was produced by AES encryption in ECB mode (16-bit key)''')
-args = arg_parser.parse_args()
-
 def main():
-    with open(args.input_file, 'r') as f:
+    with open('data/08_input.txt', 'r') as f:
         btss = [bytes.fromhex(line.strip()) for line in f]
 
     best_i,best_bts = max(enumerate(btss), key=lambda t: ecb_detect(t[1]))

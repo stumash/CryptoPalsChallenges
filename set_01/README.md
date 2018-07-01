@@ -4,7 +4,7 @@
 
 Each `XX_code.py` in this folder can be run with
 
-`$ ./XX_code.py data/XX_input.txt`
+`$ ./XX_code.py`
 
 where `XX` matches `0[12345678]`.
 
@@ -13,6 +13,9 @@ where `XX` matches `0[12345678]`.
 Where appliclable, output can be compared against the output of
 
 `$ cat data/XX_expected_output.txt`.
+
+Note that each `XX_code.py` file already asserts, in the code, that its output
+is equal to the data found in `data/XX_expected_output.txt`.
 
 # The Challenges
 

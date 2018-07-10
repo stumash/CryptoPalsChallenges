@@ -1,3 +1,9 @@
+# python-generated files
 __pycache__
 *.pyc
+
+# vim-generated files
 *.swp
+
+# virtualenv-generated files
+venv

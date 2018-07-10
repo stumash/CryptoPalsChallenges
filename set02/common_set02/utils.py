@@ -39,7 +39,7 @@ def aes_cbc_decrypt(bts: bytes, key: bytes, iv: bytes):
         raise ValueError('assert(len(iv)==len(key) and len(bts)%len(key)==0)')
 
     backend   = default_backend()
-    cipher    = Cipher(algorithms.AES(key), modes.ECB(), backend = backend)
+    cipher    = Cipher(algorithms.AES(key), modes.ECB(), backend=backend)
     decryptor = cipher.decryptor()
     
     blks     = [iv] + [bts[i*len(iv):(i+1)*len(iv)] for i in range(len(bts)//len(iv))]

@@ -10,6 +10,11 @@ def main():
     key = b'YELLOW SUBMARINE'
     iv  = b'0000000000000000'
 
+    dec = aes_cbc_decrypt(bts, key, iv)
+    print(len(bts), len(dec))
+
+    assert(aes_cbc_encrypt(dec,key,iv) == bts)
+
     print(''.join(chr(b) for b in aes_cbc_decrypt(bts,key,iv)))
 
 if __name__ == "__main__":

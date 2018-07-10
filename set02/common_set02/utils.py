@@ -23,10 +23,10 @@ def aes_cbc_encrypt(bts: bytes, key: bytes, iv: bytes):
 
     blks = [iv] + [bts[i*len(iv):(i+1)*len(iv)] for i in range(0,len(bts)-len(iv),len(iv))]
 
-    for i in range(1,range(len(blks)+1)):
-        blks[i] = encryptor.update(xor(blks[i-1], blks[i]))
+    # for i in range(1,range(len(blks)+1)):
+        # blks[i] = encryptor.update(xor(blks[i-1], blks[i]))
 
-    return b''.join(blks[1:])
+    return b''.join(sum(encryptor.update(xor(blks[i-1],blks[i])) for i in range(1,len(blks)+1)) + encryptor.finalize())
 
 
 
@@ -35,13 +35,16 @@ def aes_cbc_decrypt(bts: bytes, key: bytes, iv: bytes):
         raise ValueError('assert(len(iv)==len(key) and len(bts)%len(key)==0)')
 
     backend   = default_backend()
-    cipher    = Cipher(algorithms.AES(key), modes.ECB(), backend = backend)
+    cipher    = Cipher(algorithms.AES(key), modes.ECB(), backend=backend)
     decryptor = cipher.decryptor()
     
     blks = [iv] + [bts[i*len(iv):(i+1)*len(iv)] for i in range(0,len(bts)-len(iv),len(iv))]
 
+    print(len(blks), blks)
     for i in range(len(blks)-1,0,-1):
-        blks[i] = xor(blks[i-1], decryptor.update(blks[i]))
+        dec = decryptor.update(blks[i])
+        print(dec, len(dec), blks[i], len(blks[i]), iv, len(iv))
+        blks[i] = xor(blks[i-1], dec)
 
     return b''.join(blks[1:])
 

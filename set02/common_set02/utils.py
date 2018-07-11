@@ -1,6 +1,8 @@
 from math import ceil
+
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+backend = default_backend()
 
 def pkcs7(bts: bytes, blk_size: int):
     """
@@ -17,20 +19,15 @@ def aes_cbc_encrypt(bts: bytes, key: bytes, iv: bytes):
     if len(bts) % len(iv) != 0 or len(iv) != len(key):
         raise ValueError('assert(len(iv)==len(key) and len(bts)%len(key)==0)')
 
-    backend   = default_backend()
     cipher    = Cipher(algorithms.AES(key), modes.ECB(), backend=backend)
     encryptor = cipher.encryptor()
 
-    print(len(bts), len(iv), len(bts)//len(iv))
-    blks = [bts[i*len(iv):(i+1)*len(iv)] for i in range(len(bts)//len(iv))]
-    print(len(blks), blks)
+    dec_blks = [bts[i*len(iv):(i+1)*len(iv)] for i in range(len(bts)//len(iv))]
 
     enc_blks = [iv]
-    for i in range(1,len(blks)):
-        print(i, len(blks))
-        e = enc_blks[i-1]
-        b = blks[i]
-        enc_blks.append( encryptor.update(xor(e, b)) )
+    for blk in dec_blks:
+        prev = enc_blks[-1]
+        enc_blks.append( encryptor.update(xor(blk,prev)) )
 
     return b''.join(enc_blks[1:])
 
@@ -38,13 +35,12 @@ def aes_cbc_decrypt(bts: bytes, key: bytes, iv: bytes):
     if len(bts) % len(iv) != 0 or len(iv) != len(key):
         raise ValueError('assert(len(iv)==len(key) and len(bts)%len(key)==0)')
 
-    backend   = default_backend()
     cipher    = Cipher(algorithms.AES(key), modes.ECB(), backend=backend)
     decryptor = cipher.decryptor()
     
-    blks     = [iv] + [bts[i*len(iv):(i+1)*len(iv)] for i in range(len(bts)//len(iv))]
-    print(len(blks))
-    dec_blks = [xor(blks[i-1],decryptor.update(blks[i])) for i in reversed(range(len(blks)))]
+    enc_blks = [iv] + [bts[i:i+len(iv)] for i in range(0,len(bts),len(iv))]
+
+    dec_blks = [xor(enc_blks[i-1], decryptor.update(enc_blks[i])) for i in range(1,len(enc_blks))]
 
     return b''.join(dec_blks)
 

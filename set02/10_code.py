@@ -8,14 +8,13 @@ def main():
         bts = b64decode(''.join(line.strip() for line in f))
 
     key = b'YELLOW SUBMARINE'
-    iv  = b'0000000000000000'
+    iv  = b'00000000000x0000'
 
-    dec = aes_cbc_decrypt(bts, key, iv)
-    print(len(bts), len(dec))
+    decrypted = aes_cbc_decrypt(bts, key, iv)
 
-    assert(aes_cbc_encrypt(dec,key,iv) == bts)
+    assert(aes_cbc_encrypt(decrypted, key, iv) == bts)
 
-    print(''.join(chr(b) for b in aes_cbc_decrypt(bts,key,iv)))
+    print(''.join(chr(b) for b in decrypted))
 
 if __name__ == "__main__":
     main()

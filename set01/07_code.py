@@ -11,6 +11,7 @@ def main():
 
     backend = default_backend()
     key     = b'YELLOW SUBMARINE'
+
     cipher    = Cipher(algorithms.AES(key), modes.ECB(), backend=backend)
     decryptor = cipher.decryptor()
 

@@ -79,3 +79,16 @@ def xor(bts1: bytes, bts2: bytes):
         raise ValueError('assert(len(bts1) == len(bts2))')
 
     return bytes(b1^b2 for b1,b2 in zip(bts1,bts2))
+
+#-------------------------------
+# ECB/CBC DETECTION ORACLE
+#-------------------------------
+
+def ecb_cbc_detection_oracle(bts: bytes, keylen: int) -> str:
+    if len(bts) % keylen != 0:
+        raise ValueError('assert(len(bts) % keylen == 0)')
+
+    blks = [bts[i:i+keylen] for i in range(0,len(bts),keylen)]
+
+    if len(blks) != len(set(blks)): return 'ecb'
+    else: return 'cbc'

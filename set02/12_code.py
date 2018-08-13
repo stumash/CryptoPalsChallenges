@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-from common_set02 import ecb_cbc_detection_oracle
-from common_set02 import aes_ecb_encrypt, pkcs7
+from common_set02 import ecb_cbc_detection_oracle, aes_ecb_encrypt, pkcs7
 from base64 import b64decode
 import random
 
@@ -15,10 +14,12 @@ def main():
     """
 
     keysize = discover_keysize(encryptor)
-    assert(keysize != None and keysize == len(encryptor.AES_KEY))
+    assert(keysize == len(encryptor.AES_KEY))
 
-    detected_encryption_mode = ecb_cbc_detection_oracle(encryptor.encrypt(b'A'*keysize*2), keysize)
-    assert(detected_encryption_mode == 'ecb')
+    mode = ecb_cbc_detection_oracle(encryptor.encrypt(b'A'*keysize*2), keysize)
+    assert(mode == 'ecb')
+
+    UKNOWN_BYTES_LEN = discover_uknown_bytes_len(encryptor)
 
 class OracleEncryptor():
     def __init__(self):
@@ -44,10 +45,13 @@ def discover_keysize(encryptor: OracleEncryptor) -> int:
     of the resulting ciphertext are identical. So, start with keysize=1
     and keep going until the condition is met.
     """
-    for keysize in range(1, 32):
+    for keysize in range(1, 32): # 32 bytes = 256 bits = max key size
         bts = encryptor.encrypt(b'A' * keysize * 2)
         if bts[:keysize] == bts[keysize:keysize*2]:
             return keysize
+
+def discover_uknown_bytes_len(encryptor: OracleEncryptor) -> int:
+    pass
 
 if __name__ == "__main__":
     main()

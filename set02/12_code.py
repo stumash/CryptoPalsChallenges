@@ -10,7 +10,8 @@ def main():
     """
     1. determine the keysize used by encryptor
     2. detect that encryptor is running in ecb mode
-    3.
+    3. determine the number of bytes in the unknown string
+    4. determine the unknown string
     """
 
     keysize = discover_keysize(encryptor)
@@ -19,9 +20,19 @@ def main():
     mode = ecb_cbc_detection_oracle(encryptor.encrypt(b'A'*keysize*2), keysize)
     assert(mode == 'ecb')
 
-    UKNOWN_BYTES_LEN = discover_uknown_bytes_len(encryptor)
+    unknown_bytes_len = discover_unknown_bytes_len(encryptor, keysize)
+    assert(unknown_bytes_len == len(encryptor.UKNOWN_BYTES))
 
 class OracleEncryptor():
+    """
+    This encryptor always encrypts using the same key after appending the
+    same unknown text. We can represent this mathetmatically as
+
+    AES_ECB( pkcs7(input-bytes || unknown-bytes, keysize) )
+
+    where the AES key and the unknown-bytes are created once at object
+    initialization.
+    """
     def __init__(self):
         UKNOWN_STRING = (
             "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg"
@@ -50,8 +61,15 @@ def discover_keysize(encryptor: OracleEncryptor) -> int:
         if bts[:keysize] == bts[keysize:keysize*2]:
             return keysize
 
-def discover_uknown_bytes_len(encryptor: OracleEncryptor) -> int:
-    pass
+def discover_unknown_bytes_len(encryptor: OracleEncryptor, keysize: int) -> int:
+    """
+    TODO: TODO: TODO: docsting
+    """
+    start_len = len(encryptor.encrypt(b''))
+    for pad_len in range(1, 256):
+        new_len = len(encryptor.encrypt(b'A' * pad_len))
+        if new_len != start_len:
+            return new_len - pad_len - (keysize - 1)
 
 if __name__ == "__main__":
     main()

@@ -23,6 +23,11 @@ def main():
     unknown_bytes_len = discover_unknown_bytes_len(encryptor, keysize)
     assert(unknown_bytes_len == len(encryptor.UKNOWN_BYTES))
 
+    unknown_bytes = discover_unknown_bytes(encryptor, keysize, unknown_bytes_len)
+    # assert(unknown_bytes == encryptor.UNKNOWN_BYTES)
+
+    # print(unknown_bytes.decode())
+
 class OracleEncryptor():
     """
     This encryptor always encrypts using the same key after appending the
@@ -31,7 +36,7 @@ class OracleEncryptor():
     AES_ECB( pkcs7(input-bytes || unknown-bytes, keysize) )
 
     where the AES key and the unknown-bytes are created once at object
-    initialization.
+    initialization. ('||' is the concatenation operator)
     """
     def __init__(self):
         UKNOWN_STRING = (
@@ -63,13 +68,35 @@ def discover_keysize(encryptor: OracleEncryptor) -> int:
 
 def discover_unknown_bytes_len(encryptor: OracleEncryptor, keysize: int) -> int:
     """
-    TODO: TODO: TODO: docsting
+    We know that the encryptor may pad whatever it encrypts so that the output is
+    always a multiple of some value, n. So, we continually prepend padding of our own
+    until the length of the encryptor's output increases by n. At this point, we
+    know that `output_len - pad_len - (n - 1) = unknown_bytes_len`. In our case, we
+    know that n = keysize.
     """
     start_len = len(encryptor.encrypt(b''))
     for pad_len in range(1, 256):
         new_len = len(encryptor.encrypt(b'A' * pad_len))
         if new_len != start_len:
             return new_len - pad_len - (keysize - 1)
+
+def discover_unknown_bytes(encryptor: OracleEncryptor, keysize: int, known_len: int) -> bytes:
+    discovered_bytes = []
+
+    for i in range(known_len):
+        blk_num, b_num = i // keysize, i % keysize
+        pad = b'A' * (keysize - b_num - 1)
+
+        bts     = pad + bytes(b for b in discovered_bytes)
+        bts_blk = bts[-(keysize-1):]
+        d       = {encryptor.encrypt(bts + bytes([b])) : b for b in range(0,255)}
+
+        enc     = encryptor.encrypt(pad)
+        enc_blk = enc[blk_num*keysize:(blk_num+1)*keysize]
+
+        discovered_bytes.append(d[enc_blk])
+
+    return discovered_bytes
 
 if __name__ == "__main__":
     main()

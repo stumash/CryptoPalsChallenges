@@ -21,12 +21,12 @@ def main():
     assert(mode == 'ecb')
 
     unknown_bytes_len = discover_unknown_bytes_len(encryptor, keysize)
-    assert(unknown_bytes_len == len(encryptor.UKNOWN_BYTES))
+    assert(unknown_bytes_len == len(encryptor.UNKNOWN_BYTES))
 
     unknown_bytes = discover_unknown_bytes(encryptor, keysize, unknown_bytes_len)
-    # assert(unknown_bytes == encryptor.UNKNOWN_BYTES)
+    assert(unknown_bytes == encryptor.UNKNOWN_BYTES)
 
-    # print(unknown_bytes.decode())
+    print(unknown_bytes.decode())
 
 class OracleEncryptor():
     """
@@ -39,19 +39,19 @@ class OracleEncryptor():
     initialization. ('||' is the concatenation operator)
     """
     def __init__(self):
-        UKNOWN_STRING = (
+        UNKNOWN_STRING = (
             "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg"
             "aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq"
             "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg"
             "YnkK"
         )
-        self.UKNOWN_BYTES = b64decode(UKNOWN_STRING)
+        self.UNKNOWN_BYTES = b64decode(UNKNOWN_STRING)
 
         KEYLEN  = 16 # initialize secret aes key
         self.AES_KEY = bytes(random.randint(0,255) for b in range(KEYLEN))
 
     def encrypt(self, bts: bytes) -> bytes:
-        bts = pkcs7(bts + self.UKNOWN_BYTES, len(self.AES_KEY))
+        bts = pkcs7(bts + self.UNKNOWN_BYTES, len(self.AES_KEY))
         return aes_ecb_encrypt(bts, self.AES_KEY)
 
 def discover_keysize(encryptor: OracleEncryptor) -> int:
@@ -81,22 +81,27 @@ def discover_unknown_bytes_len(encryptor: OracleEncryptor, keysize: int) -> int:
             return new_len - pad_len - (keysize - 1)
 
 def discover_unknown_bytes(encryptor: OracleEncryptor, keysize: int, known_len: int) -> bytes:
+    """
+    I think this docstring is just too hard to write. You'll have to read the code to understand.
+    """
     discovered_bytes = []
 
     for i in range(known_len):
-        blk_num, b_num = i // keysize, i % keysize
-        pad = b'A' * (keysize - b_num - 1)
+        b_num = i  % keysize
+        pad   = b'A' * (keysize - b_num - 1)
 
         bts     = pad + bytes(b for b in discovered_bytes)
         bts_blk = bts[-(keysize-1):]
-        d       = {encryptor.encrypt(bts + bytes([b])) : b for b in range(0,255)}
 
+        d = {encryptor.encrypt(bts_blk + bytes([b]))[:keysize] : b for b in range(0,255)}
+
+        blk_num = i // keysize
         enc     = encryptor.encrypt(pad)
         enc_blk = enc[blk_num*keysize:(blk_num+1)*keysize]
 
         discovered_bytes.append(d[enc_blk])
 
-    return discovered_bytes
+    return bytes(discovered_bytes)
 
 if __name__ == "__main__":
     main()

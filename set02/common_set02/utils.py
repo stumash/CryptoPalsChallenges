@@ -8,7 +8,7 @@ backend = default_backend()
 # PKCS7 PADDING
 #-------------------------------
 
-def pkcs7(bts: bytes, blk_size: int):
+def pkcs7(bts: bytes, blk_size: int) -> bytes:
     """
     Right-pad with up to 255 bytes. The padding byte
     used is equal to the number of bytes padded.
@@ -18,6 +18,13 @@ def pkcs7(bts: bytes, blk_size: int):
 
     pad = abs(len(bts) - ceil(len(bts) / blk_size) * blk_size)
     return bytes(pad if not i < len(bts) else bts[i] for i in range(len(bts)+pad))
+
+def pkcs7_unpad(bts: bytes) -> bytes:
+    pad_val = bts[-1]
+    if not all(b==pad_val for b in bts[-pad_val:]):
+        return bts
+    return bts[:-pad_val]
+
 
 #-------------------------------
 # ECB-MODE AES

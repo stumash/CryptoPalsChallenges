@@ -2,12 +2,28 @@
 
 from common_set02 import aes_ecb_encrypt, aes_ecb_decrypt, pkcs7, pkcs7_unpad
 from typing import Dict
+import string
 import random
 
 def main():
+    s = 'stu@mash.com'
+    profile = profile_for(s)
+    print(s, profile)
+
     AES_KEY = bytes(random.randint(0,255) for i in range(16))
-    enc = encrypt('stu@mash.com'.encode('utf-8'), AES_KEY)
+    enc = encrypt(profile.encode('utf-8'), AES_KEY)
     dec = decrypt(enc, AES_KEY)
+
+    assert(dec.decode() == profile)
+
+    def make_profile_and_encrypt(s: str) -> bytes:
+        p = profile_for(s)
+        return encrypt(p.encode('utf-8'), AES_KEY)
+
+    # we know the key length but we could just guess it if we didn't
+    keysize = len(AES_KEY)
+
+
 
 def query_string_parse(s: str) -> Dict[str,str]:
     return {k:v for [k,v] in ( kv.split('=') for kv in s.split('&') )}

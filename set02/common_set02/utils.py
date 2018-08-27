@@ -8,7 +8,7 @@ backend = default_backend()
 # PKCS7 PADDING
 #-------------------------------
 
-def pkcs7(bts: bytes, blk_size: int) -> bytes:
+def pkcs7_pad(bts: bytes, blk_size: int) -> bytes:
     """
     Right-pad with up to 255 bytes. The padding byte
     used is equal to the number of bytes padded.

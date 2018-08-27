@@ -5,7 +5,7 @@ from common_set02 import pkcs7
 def main():
     bts_unpadded = b'YELLOW SUBMARINE'
 
-    bts_padded = pkcs7(bts_unpadded, 20)
+    bts_padded = pkcs7_pad(bts_unpadded, 20)
 
     assert(bts_padded == b'YELLOW SUBMARINE\x04\x04\x04\x04')
 

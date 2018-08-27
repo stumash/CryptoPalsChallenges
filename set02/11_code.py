@@ -3,7 +3,7 @@
 from typing import Tuple
 
 from common_set02 import aes_cbc_encrypt, aes_ecb_encrypt
-from common_set02 import pkcs7, ecb_cbc_detection_oracle
+from common_set02 import pkcs7_pad, ecb_cbc_detection_oracle
 import random
 
 KEYLEN = 16
@@ -21,7 +21,7 @@ def main():
     assert(used_mode == detected_mode)
 
 def aes_cbc_or_ecb_encrypt_random_key(bts: bytes) -> Tuple[bytes, str]:
-    bts = pkcs7( random_pad_both_sides(bts), KEYLEN )
+    bts = pkcs7_pad( random_pad_both_sides(bts), KEYLEN )
     key = bytes(random.randint(0,255) for i in range(KEYLEN))
 
     if random.choice([True, False]):

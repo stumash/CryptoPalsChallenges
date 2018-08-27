@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from common_set02 import ecb_cbc_detection_oracle, aes_ecb_encrypt, pkcs7
+from common_set02 import ecb_cbc_detection_oracle, aes_ecb_encrypt, pkcs7_pad
 from base64 import b64decode
 import random
 
@@ -33,7 +33,7 @@ class OracleEncryptor():
     This encryptor always encrypts using the same key after appending the
     same unknown text. We can represent this mathetmatically as
 
-    AES_ECB( pkcs7(input-bytes || unknown-bytes, keysize) )
+    AES_ECB( pkcs7_pad(input-bytes || unknown-bytes, keysize) )
 
     where the AES key and the unknown-bytes are created once at object
     initialization. ('||' is the concatenation operator)
@@ -51,7 +51,7 @@ class OracleEncryptor():
         self.AES_KEY = bytes(random.randint(0,255) for b in range(KEYLEN))
 
     def encrypt(self, bts: bytes) -> bytes:
-        bts = pkcs7(bts + self.UNKNOWN_BYTES, len(self.AES_KEY))
+        bts = pkcs7_pad(bts + self.UNKNOWN_BYTES, len(self.AES_KEY))
         return aes_ecb_encrypt(bts, self.AES_KEY)
 
 def discover_keysize(encryptor: OracleEncryptor) -> int:

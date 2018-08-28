@@ -58,11 +58,11 @@ def main():
     email1 = 'ABCDEFGHIJ' + 'admin'+'\x0b'*11
     admin_blk = make_profile_and_encrypt(email1)[keysize*1:keysize*2]
 
-    # test that it all worked
-
     handcrafted_ciphertext = front_blk + admin_blk
-    handcrafted_message    = decrypt(handcrafted_ciphertext, AES_KEY)
 
+    # now test that it all worked: when the adversary decrypts, we inject an admin profile
+
+    handcrafted_message = decrypt(handcrafted_ciphertext, AES_KEY).decode()
     injected_profile = query_string_parse(handcrafted_message)
     desired_profile  = {'email':email0, 'uid':'10', 'role':'admin'}
 

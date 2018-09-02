@@ -5,9 +5,29 @@ from common_set02 import aes_ecb_encrypt, pkcs7_pad
 def main():
     encryptor = OracleEncryptor()
 
+    """
+    1. determine the keysize used by the encryptor
+    2. detect that encryptor is running in ecb mode
+    3. determine the number of bytes in the unknown string
+    4. determine the unknown string
+    """
+
+    keysize = discover_keysize(encryptor)
+    assert(keysize == len(encryptor.AES_KEY))
+
     print('done')
 
 class OracleEncryptor():
+    """
+    When instantiated, this encryptor generates
+    1. some RANDOM BYTES to always prepend to all plaintext before encryption
+    2. a random AES KEY to always use for encryption
+    During instantiation, this encryptor also initializes
+    3. some TARGET BYTES to always append to all plaintext before encryption
+
+    This encryptor performs the following function
+    AES_ECB( pkcs7_pad(random bytes||input bytes||target bytes) )
+    """
     def __init__(self):
         TARGET_STRING = (
             "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg"
@@ -26,6 +46,9 @@ class OracleEncryptor():
     def encrypt(self, bts: bytes) -> bytes:
         bts = pkcs7_pad(self.RANDOM_BYTES + bts + self.TARGET_BYTES, len(self.AES_KEY))
         return aes_ecb_encrypt(bts, self.AES_KEY)
+
+def discover_keysize(encryptor: OracleEncryptor):
+    pass
 
 if __name__ == "__main__":
     main()

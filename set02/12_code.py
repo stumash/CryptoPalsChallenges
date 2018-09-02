@@ -33,7 +33,7 @@ class OracleEncryptor():
     This encryptor always encrypts using the same key after appending the
     same unknown text. We can represent this mathetmatically as
 
-    AES_ECB( pkcs7_pad(input-bytes || unknown-bytes, keysize) )
+    AES_ECB( pkcs7_pad(input-bytes||unknown-bytes) )
 
     where the AES key and the unknown-bytes are created once at object
     initialization. ('||' is the concatenation operator)

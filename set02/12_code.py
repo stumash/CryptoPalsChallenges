@@ -48,7 +48,7 @@ class OracleEncryptor():
         self.UNKNOWN_BYTES = b64decode(UNKNOWN_STRING)
 
         KEYLEN  = 16 # initialize secret aes key
-        self.AES_KEY = bytes(random.randint(0,255) for b in range(KEYLEN))
+        self.AES_KEY = bytes(random.randint(0,256) for b in range(KEYLEN))
 
     def encrypt(self, bts: bytes) -> bytes:
         bts = pkcs7_pad(bts + self.UNKNOWN_BYTES, len(self.AES_KEY))
@@ -71,14 +71,14 @@ def discover_unknown_bytes_len(encryptor: OracleEncryptor, keysize: int) -> int:
     We know that the encryptor may pad whatever it encrypts so that the output is
     always a multiple of some value, n. So, we continually prepend padding of our own
     until the length of the encryptor's output increases by n. At this point, we
-    know that `output_len - pad_len - (n - 1) = unknown_bytes_len`. In our case, we
+    know that `output_len - (n - 1) - pad_len = unknown_bytes_len`. In our case, we
     know that n = keysize.
     """
     start_len = len(encryptor.encrypt(b''))
     for pad_len in range(1, 256):
         new_len = len(encryptor.encrypt(b'A' * pad_len))
         if new_len != start_len:
-            return new_len - pad_len - (keysize - 1)
+            return new_len - (keysize - 1) - pad_len
 
 def discover_unknown_bytes(encryptor: OracleEncryptor, keysize: int, known_len: int) -> bytes:
     """
@@ -93,7 +93,7 @@ def discover_unknown_bytes(encryptor: OracleEncryptor, keysize: int, known_len: 
         bts     = pad + bytes(b for b in discovered_bytes)
         bts_blk = bts[-(keysize-1):]
 
-        d = {encryptor.encrypt(bts_blk + bytes([b]))[:keysize] : b for b in range(0,255)}
+        d = {encryptor.encrypt(bts_blk + bytes([b]))[:keysize] : b for b in range(0,256)}
 
         blk_num = i // keysize
         enc     = encryptor.encrypt(pad)

@@ -48,7 +48,7 @@ class OracleEncryptor():
         self.UNKNOWN_BYTES = b64decode(UNKNOWN_STRING)
 
         KEYLEN  = 16 # initialize secret aes key
-        self.AES_KEY = bytes(random.randint(0,256) for b in range(KEYLEN))
+        self.AES_KEY = bytes(random.randint(0,255) for b in range(KEYLEN))
 
     def encrypt(self, bts: bytes) -> bytes:
         bts = pkcs7_pad(bts + self.UNKNOWN_BYTES, len(self.AES_KEY))

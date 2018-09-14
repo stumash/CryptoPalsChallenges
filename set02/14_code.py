@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 
 from common_set02 import aes_ecb_encrypt, pkcs7_pad
+from common_set02 import ecb_cbc_detection_oracle
+from base64 import b64decode
+from itertools import count
+from typing import Tuple
+import random
+
+# TODO: use the word 'preamble' everywhere in this file
 
 def main():
     encryptor = OracleEncryptor()
 
-    """
-    1. determine the keysize used by the encryptor
-    2. detect that encryptor is running in ecb mode
-    3. determine the number of bytes in the unknown string
-    4. determine the unknown string
-    """
-
-    keysize = discover_keysize(encryptor)
+    keysize, preamble_size = discover_keysize_and_preamble_size(encryptor)
     assert(keysize == len(encryptor.AES_KEY))
+    assert(preamble_size == len(encryptor.RANDOM_BYTES))
 
     print('done')
 
@@ -38,42 +39,42 @@ class OracleEncryptor():
         self.TARGET_BYTES = b64decode(TARGET_STRING)
 
         KEYLEN = 16
-        self.AES_KEY = bytes(random.randint(0,256) for b in range(KEYLEN))
+        self.AES_KEY = bytes(random.randint(0,255) for b in range(KEYLEN))
 
-        RANDBYTESLEN = random.randint(1,256)
-        self.RANDOM_BYTES = bytes(random.randint(0,256) for b in range(RANDBYTESLEN))
+        RANDBYTESLEN = random.randint(1,256*4)
+        print(RANDBYTESLEN)
+        self.RANDOM_BYTES = bytes(random.randint(0,255) for b in range(RANDBYTESLEN))
 
     def encrypt(self, bts: bytes) -> bytes:
         bts = pkcs7_pad(self.RANDOM_BYTES + bts + self.TARGET_BYTES, len(self.AES_KEY))
         return aes_ecb_encrypt(bts, self.AES_KEY)
 
-def discover_keysize(encryptor: OracleEncryptor):
+def discover_keysize_and_preamble_size(encryptor: OracleEncryptor) -> Tuple[int,int]:
     """
-    If the encryptor didn't prepend an unknown number of bytes before encrypting,
-    we would be able to get the keysize just as we did in set02/12. Namely, we could
-    feed an increasing number, n, of bytes into the encryptor. When the encryptor spits
-    out two identical and adjacent blocks of ciphertext, each n/2 in length, we would
-    know that n/2 is the keysize.
-
-    However, since the encryptor prepends an unknown number of random bytes, p (where p
-    may or may not be a multiple of the keysize), we cannot use the exact same strategy
-    as we did in set02/12. Take the following example as explanation.
-
-    ----EXAMPLE BEGIN------
-    keysize = 8 bytes
-    p = 6 bytes
-    input = b'121234567812345678'
-    
-    Given that p=6, the first 8 bytes of ciphertext are the result of encrypting
-    (6 random bytes || b'12'). The next pair of 8 bytes will be identical and the result
-    of encrypting b'12345678' and b'12345678', respectively.
-    ----EXAMPLE END------
-
-    As we can see, 18 input bytes were given to the encryptor, yet the 2 identical blocks
-    of ciphertext are the second two ciphertext blocks, and are 8 bytes in length. Note
-    that 8 != 18/2.
+    Get ciphertext c1 from input b'' and ciphertext c2 from input b'A'. The first byte
+    that differs between the two ciphpertexts is the beginning of the first block whose
+    plaintext contains input bytes.
     """
-    return len(encryptor.AES_KEY)
+    c1, c2 = encryptor.encrypt(b''), encryptor.encrypt(b'A')
+    start = next(i for i,(b1,b2) in enumerate(zip(c1, c2)) if b1 != b2)
+
+    # TODO: fix this comment
+    """
+    Keep increasing input input_size by 1 byte until the byte at index 'start' of the ciphertext
+    stops changing. When it stops changing, it means the last two inputs were long enough that
+    they filled 
+    """
+    for input_size in count():
+        c1,c2 = encryptor.encrypt(b'A'*input_size), encryptor.encrypt(b'A'*(input_size+1))
+        if c1[start] == c2[start]:
+            # can fail. probability of failure ~= 1/256
+            end = next(i for i,(b1,b2) in enumerate(zip(c1, c2)) if b1 != b2)
+            break
+
+    keysize       = end - start
+    preamble_size = end - input_size
+
+    return keysize, preamble_size
 
 if __name__ == "__main__":
     main()

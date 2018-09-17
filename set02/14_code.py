@@ -1,27 +1,39 @@
 #!/usr/bin/env python3
 
-from common_set02 import aes_ecb_encrypt, pkcs7_pad
-from common_set02 import ecb_cbc_detection_oracle
+from common_set02 import aes_ecb_encrypt, pkcs7_pad, ecb_cbc_detection_oracle
 from base64 import b64decode
 from itertools import count
 from typing import Tuple
 import random
 
-# TODO: use the word 'preamble' everywhere in this file
+"""
+NOTE: this program involves some randomness. It can fail randomly, though it fails
+much less often than it succeeds
+"""
 
 def main():
     encryptor = OracleEncryptor()
 
+    """
+    1. determine the keysize and preamble size used by encryptor
+    2. detect that the encryptor is running in ecb mode
+    3. determine the number of bytes in the unknown string TODO
+    4. determine the unknown string TODO
+    """
+
     keysize, preamble_size = discover_keysize_and_preamble_size(encryptor)
     assert(keysize == len(encryptor.AES_KEY))
-    assert(preamble_size == len(encryptor.RANDOM_BYTES))
+    assert(preamble_size == len(encryptor.PREAMBLE_BYTES))
+
+    mode = ecb_cbc_detection_oracle(encryptor.encrypt(), keysize)
+    assert(mode == 'ecb')
 
     print('done')
 
 class OracleEncryptor():
     """
     When instantiated, this encryptor generates
-    1. some RANDOM BYTES to always prepend to all plaintext before encryption
+    1. some PREAMBLE BYTES to always prepend to all plaintext before encryption
     2. a random AES KEY to always use for encryption
     During instantiation, this encryptor also initializes
     3. some TARGET BYTES to always append to all plaintext before encryption
@@ -41,12 +53,11 @@ class OracleEncryptor():
         KEYLEN = 16
         self.AES_KEY = bytes(random.randint(0,255) for b in range(KEYLEN))
 
-        RANDBYTESLEN = random.randint(1,256*4)
-        print(RANDBYTESLEN)
-        self.RANDOM_BYTES = bytes(random.randint(0,255) for b in range(RANDBYTESLEN))
+        PREAMBLE_LEN = random.randint(1,256*4)
+        self.PREAMBLE_BYTES = bytes(random.randint(0,255) for b in range(PREAMBLE_LEN))
 
     def encrypt(self, bts: bytes) -> bytes:
-        bts = pkcs7_pad(self.RANDOM_BYTES + bts + self.TARGET_BYTES, len(self.AES_KEY))
+        bts = pkcs7_pad(self.PREAMBLE_BYTES + bts + self.TARGET_BYTES, len(self.AES_KEY))
         return aes_ecb_encrypt(bts, self.AES_KEY)
 
 def discover_keysize_and_preamble_size(encryptor: OracleEncryptor) -> Tuple[int,int]:
@@ -61,8 +72,7 @@ def discover_keysize_and_preamble_size(encryptor: OracleEncryptor) -> Tuple[int,
     # TODO: fix this comment
     """
     Keep increasing input input_size by 1 byte until the byte at index 'start' of the ciphertext
-    stops changing. When it stops changing, it means the last two inputs were long enough that
-    they filled 
+    stops changing. When it stops changing, it means the last input was
     """
     for input_size in count():
         c1,c2 = encryptor.encrypt(b'A'*input_size), encryptor.encrypt(b'A'*(input_size+1))

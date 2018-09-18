@@ -28,6 +28,9 @@ def main():
     mode = ecb_cbc_detection_oracle(encryptor.encrypt(), keysize)
     assert(mode == 'ecb')
 
+    target_bytes_len = discover_target_bytes_len(encryptor, preamble_size, keysize)
+    assert(target_bytes_len == len(encryptor.TARGET_BYTES))
+
     print('done')
 
 class OracleEncryptor():
@@ -63,28 +66,34 @@ class OracleEncryptor():
 def discover_keysize_and_preamble_size(encryptor: OracleEncryptor) -> Tuple[int,int]:
     """
     Get ciphertext c1 from input b'' and ciphertext c2 from input b'A'. The first byte
-    that differs between the two ciphpertexts is the beginning of the first block whose
+    that differs between the two ciphpertexts is the start of the first block whose
     plaintext contains input bytes.
     """
     c1, c2 = encryptor.encrypt(b''), encryptor.encrypt(b'A')
-    start = next(i for i,(b1,b2) in enumerate(zip(c1, c2)) if b1 != b2)
+    blk_start = next(i for i,(b1,b2) in enumerate(zip(c1, c2)) if b1 != b2)
+    # blk_start is the index of the first byte of the first ciphertext block whose
+    # plaintext contains bytes from the encrypt function's input
 
-    # TODO: fix this comment
     """
-    Keep increasing input input_size by 1 byte until the byte at index 'start' of the ciphertext
-    stops changing. When it stops changing, it means the last input was
+    Begin with input1 = b'' and input2 = b'A', and encrypt both. Append b'A' to both until
+    the 'blk_start' byte of both ciphertexts is the same. This will happen when input1 is long
+    enough that it ends at the end of a block and input2 ends one byte after.
     """
     for input_size in count():
-        c1,c2 = encryptor.encrypt(b'A'*input_size), encryptor.encrypt(b'A'*(input_size+1))
-        if c1[start] == c2[start]:
-            # can fail. probability of failure ~= 1/256
-            end = next(i for i,(b1,b2) in enumerate(zip(c1, c2)) if b1 != b2)
+        input1, input2 = map(lambda x: b'A'*x, (input_size, input_size+1))
+        c1, c2 = map(encryptor.encrypt, (inp1, inp2))
+        if c1[blk_start] == c2[blk_start]:
+            # can fail if unlucky about contents encryptor's preamble bytes
+            blk_end = next(i for i,(b1,b2) in enumerate(zip(c1, c2)) if b1 != b2)
             break
 
-    keysize       = end - start
-    preamble_size = end - input_size
+    keysize       = blk_end - blk_start
+    preamble_size = blk_end - input_size
 
     return keysize, preamble_size
+
+def discover_target_bytes_len(encryptor: OracleEncryptor, preamble_size: int, keysize: int):
+    pass
 
 if __name__ == "__main__":
     main()

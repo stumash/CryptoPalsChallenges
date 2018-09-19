@@ -82,18 +82,43 @@ def discover_unknown_bytes_len(encryptor: OracleEncryptor, keysize: int) -> int:
 
 def discover_unknown_bytes(encryptor: OracleEncryptor, keysize: int, known_len: int) -> bytes:
     """
-    I think this docstring is just too hard to write. You'll have to read the code to understand.
+    Let's say the keysize is 8 bytes. If we pass b'AAAAAAA' (len=7) as input to the encryptor, we know
+    that since encryption is done in blocks of 8 bytes, the encryptor will append the first byte
+    from the unknown_bytes to our input before encrypting.
+
+    Now, let's make a list of all possible 8-byte blocks whose first seven bytes are b'AAAAAAA'.  The
+    first list item is b'AAAAAAA'+b'\x00', the second b'AAAAAAA'+b'\x01', etc. Next, encrypt each of
+    these 8-byte blocks, and get a list of all the ciphertexts. Then, make a dictionary where the
+    keys are the ciphertexts and the values are which byte was appended to b'AAAAAAA'.
+
+    When we encrypt our input b'AAAAAAA', we can use the corresponding block of ciphertext to lookup
+    in our dictionary which byte was appended. We know that the byte that was appended was the first
+    byte of the unknown_bytes.
+
+    Let's say we found the first byte of the unknown_bytes to be b'X'. To get the second byte, we repeat
+    the process described above, but this time using input b'AAAAAA' (len=7). However, we know that the
+    7th byte will be b'X', so me make our dictionary using all possible ciphertexts where the first 7
+    bytes of plaintext are b'AAAAAAX'.
+
+    Let's say we find the first 8 bytes this way, and they're all b'X'. To get the 9th byte (which is
+    the first byte of the next block) we do the same thing we did for the first block except that we
+    care about the second block of ciphertext instead of the first. This means we pass in b'AAAAAAA'
+    (len=7), and we know the encryptor will append 8 bytes we found, b'XXXXXXXX'. Therefore the first
+    7 bytes of the second block will be b'XXXXXXX'. We can use that for the dictionary to find that 9th
+    byte.
+
+    This process continues until we have discovered all the bytes.
     """
     discovered_bytes = []
 
     for i in range(known_len):
-        b_num = i  % keysize
-        pad   = b'A' * (keysize - b_num - 1)
+        b_num = i  % keysize # how deep into the curent block is the byte we want
+        pad   = b'A' * (keysize - b_num - 1) # encryptor input, 'pads' the unknown bytes
 
         bts     = pad + bytes(b for b in discovered_bytes)
-        bts_blk = bts[-(keysize-1):]
+        bts_blk = bts[-(keysize-1):] # all the bytes in the same block as the byte we want
 
-        d = {encryptor.encrypt(bts_blk + bytes([b]))[:keysize] : b for b in range(0,256)}
+        d = {encryptor.encrypt(bts_blk + bytes([b]))[:keysize] : b for b in range(256)}
 
         blk_num = i // keysize
         enc     = encryptor.encrypt(pad)

@@ -6,16 +6,7 @@ Each `XX_code.py` in this folder can be run with
 
 `$ ./XX_code.py`
 
-where `XX` matches `0[12345678]`.
-
-## Checking the answers
-
-Where appliclable, output can be compared against the output of
-
-`$ cat data/XX_expected_output.txt`.
-
-Note that each `XX_code.py` file already asserts, in the code, that its output
-is equal to the data found in `data/XX_expected_output.txt`.
+where `XX` is a number in range `[9, 16]`.
 
 # The Challenges
 
@@ -56,7 +47,8 @@ Implement CBC mode by hand by taking the ECB function you wrote earlier, making 
 
 The [file here](data/10_input.txt) is intelligible (somewhat) when CBC decrypted against "YELLOW SUBMARINE" with an IV of all ASCII 0 (\x00\x00\x00 &c)
 
-> *Don't Cheat*
+> **Don't Cheat**
+>
 > Do not use OpenSSL's CBC code to do CBC mode, even to verify your results. What's the point of even doing this stuff if you aren't going to learn from it?
 
 ## [11. An ECB/CBC detection oracle](11_code.py)
@@ -93,7 +85,8 @@ dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg
 YnkK
 ```
 
-> *Spoiler alert.*
+> **Spoiler alert.**
+>
 > Do not decode this string now. Don't do it.
 
 Base64 decode the string before appending it. _Do not base64 decode the string by hand; make your code do it._ The point is that you don't know its contents.
@@ -115,7 +108,8 @@ Here's roughly how:
 5. Match the output of the one-byte-short input to one of the entries in your dictionary. You've now discovered the first byte of unknown-string.
 6. Repeat for the next byte.
 
-> *Congratulations.*
+> **Congratulations.**
+>
 > This is the first challenge we've given you whose solution will break real crypto. Lots of people know that when you encrypt something in ECB mode, you can see penguins through it. Not so many of them can _decrypt the contents of those ciphertexts_, and now you can. If our experience is any guideline, this attack will get you code execution in security tests about once a year.
 
 ## [13. ECB cut-and-paste](13_code.py)
@@ -179,9 +173,10 @@ AES-128-ECB(random-prefix || attacker-controlled || target-bytes, random-key)
 
 Same goal: decrypt the target-bytes.
 
-> *Stop and think for a second.*
+> **Stop and think for a second.**
+>
 > What's harder than challenge #12 about doing this? How would you overcome that obstacle? The hint is: you're using all the tools you already have; no crazy math is required.
-
+>
 > Think "STIMULUS" and "RESPONSE".
 
 ## [15. PKCS#7 padding validation](15_code.py)
@@ -246,5 +241,6 @@ You're relying on the fact that in CBC mode, a 1-bit error in a ciphertext block
 1. Completely scrambles the block the error occurs in
 2. Produces the identical 1-bit error(/edit) in the next ciphertext block.
 
-> *Stop and think for a second.*
+> **Stop and think for a second.**
+>
 > Before you implement this attack, answer this question: why does CBC mode have this property?

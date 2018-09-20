@@ -114,22 +114,40 @@ def discover_target_bytes_len(encryptor: OracleEncryptor, preamble_size: int, ke
 
 def discover_target_bytes(encryptor: OracleEncryptor, preamble_size: int, target_size: int, keysize: int) -> bytes:
     """
-    TODO: write this docstring
+    This is very similar to the algorithm from 12_code.py, with a few changes due to the preamble.
+
+    First, all input to the encryptor must be padded with a constant amount such that the block
+    in which the preamble ends is full. This means that the rest of the algorithm can assume that
+    input is encrypted at the start of a block.
+
+    Second, when collecting ciphertexts to use as dictionary keys, we must account for the fact
+    that the block that we wish to use as a key is offset by the preamble blocks.
+
+    Lastly, we must account for this offset when we extract the ciphertext block to be used for
+    the dictionary lookup.
     """
-    minimum_pad = b'A' * (keysize - (preamble_size % keysize))
+    # pad the preamble to the end of a block
+    min_pad = b'A' * (keysize - (preamble_size % keysize))
+    # index of 1st ciphertext byte after blocks of preamble
+    preblk_end = preamble_size + len(min_pad)
+
     discovered_bytes = []
 
     for i in range(target_size):
-        print(i)
-        b_num = i % keysize # how deep into the current block is the byte we want
-        pad   = minimum_pad + b'A' * (keysize - b_num - 1)
+        # how deep into the current block is the byte we want
+        b_num = i % keysize
+        # 'pad' is encryptor's input and used as 'left-pad' for target bytes
+        pad   = min_pad + b'A' * (keysize - b_num - 1)
 
         bts     = pad + bytes(b for b in discovered_bytes)
-        bts_blk = bts[-(keysize-1):] # the bytes in the same block as the byte we want
+        bts_blk = bts[-(keysize-1):]
 
-        d = {encryptor.encrypt(bts_blk + bytes([b]))[:keysize] : b for b in range(256)}
+        d = {
+            encryptor.encrypt(min_pad + bts_blk + bytes([b]))[preblk_end:preblk_end+keysize] : b
+            for b in range(256)
+        }
 
-        blk_num = ((preamble_size + len(minimum_pad)) // keysize) + (i // keysize)
+        blk_num = ((preamble_size + len(min_pad)) // keysize) + (i // keysize)
         enc     = encryptor.encrypt(pad)
         enc_blk = enc[blk_num*keysize:(blk_num+1)*keysize]
 

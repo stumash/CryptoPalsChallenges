@@ -112,11 +112,13 @@ def discover_unknown_bytes(encryptor: OracleEncryptor, keysize: int, known_len: 
     discovered_bytes = []
 
     for i in range(known_len):
-        b_num = i  % keysize # how deep into the curent block is the byte we want
-        pad   = b'A' * (keysize - b_num - 1) # encryptor input, 'pads' the unknown bytes
+        # how deep into the curent block is the byte we want
+        b_num = i  % keysize
+        # 'pad' is encryptor's input and used as 'left-pad' for target bytes
+        pad   = b'A' * (keysize - b_num - 1)
 
         bts     = pad + bytes(b for b in discovered_bytes)
-        bts_blk = bts[-(keysize-1):] # all the bytes in the same block as the byte we want
+        bts_blk = bts[-(keysize-1):]
 
         d = {encryptor.encrypt(bts_blk + bytes([b]))[:keysize] : b for b in range(256)}
 
